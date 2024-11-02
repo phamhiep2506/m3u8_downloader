@@ -8,12 +8,16 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="Input url m3u8")
+parser.add_argument("-r", "--referer", help="Referer url")
 args = parser.parse_args()
 
 os.system(f"mkdir -p {os.getcwd()}/ts")
 os.system(f"rm -rf {os.getcwd()}/ts/*")
 
-os.system(f"curl -s {args.input} | grep https > url.txt")
+if args.referer is None:
+    os.system(f"curl -s {args.input} | grep https > url.txt")
+else:
+    os.system(f"curl -s -H 'Referer: {args.referer}' {args.input} | grep https > url.txt")
 
 merge = open(f"{os.getcwd()}/merge.txt", "w")
 with open("url.txt", "r") as file:
