@@ -7,15 +7,13 @@ import argparse
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-i", "--input", help = "Input url m3u8")
+parser.add_argument("-i", "--input", help="Input url m3u8")
 args = parser.parse_args()
 
 os.system(f"mkdir -p {os.getcwd()}/ts")
 os.system(f"rm -rf {os.getcwd()}/ts/*")
 
-os.system(
-    f"curl -s {args.input} | grep https > url.txt"
-)
+os.system(f"curl -s {args.input} | grep https > url.txt")
 
 merge = open(f"{os.getcwd()}/merge.txt", "w")
 with open("url.txt", "r") as file:
@@ -24,7 +22,9 @@ with open("url.txt", "r") as file:
         total_size = int(res.headers.get("content-length", 0))
         block_size = 1024
 
-        with tqdm(total=total_size, unit="B", unit_scale=True, desc=f"{i}.png") as progress_bar:
+        with tqdm(
+            total=total_size, unit="B", unit_scale=True, desc=f"{i}.png"
+        ) as progress_bar:
             with open(f"{os.getcwd()}/ts/{i}.png", "wb") as file:
                 for data in res.iter_content(block_size):
                     progress_bar.update(len(data))
@@ -43,7 +43,9 @@ with open("url.txt", "r") as file:
 
         open(f"{os.getcwd()}/ts/{i}.temp", "w").write(xxd_ts)
 
-        os.system(f"cat {os.getcwd()}/ts/{i}.temp | xxd -ps -c 0 -r - {os.getcwd()}/ts/{i}.ts")
+        os.system(
+            f"cat {os.getcwd()}/ts/{i}.temp | xxd -ps -c 0 -r - {os.getcwd()}/ts/{i}.ts"
+        )
 
         merge.write(f"file '{os.getcwd()}/ts/{i}.ts'")
         merge.write("\n")
