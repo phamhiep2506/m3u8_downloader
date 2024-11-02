@@ -62,6 +62,6 @@ if __name__ == "__main__":
     merge = open(f"{os.getcwd()}/merge.txt", "w")
     with open("url.txt", "r") as file:
         for i, line in enumerate(file):
-            merge.write(f"file '{os.getcwd()}/ts/{i}.ts'")
+            merge.write(f"file 'ts/{i}.ts'")
             merge.write("\n")
             download_ts(line.strip())
