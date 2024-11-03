@@ -31,6 +31,7 @@ def download_m3u8(url: str, referer: str):
             count = count + 1
             print(f"Downloading {count}/{total_line}")
             merge.write(f"file 'ts/{count}.ts'")
+            merge.write("\n")
             download_ts(line.decode("utf-8"), referer, count)
 
     merge.close()
