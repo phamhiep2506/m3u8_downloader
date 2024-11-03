@@ -16,10 +16,10 @@ def download_ts(url: str, referer: str, index: int):
     ts.close()
 
 
-def download_m3u8(args):
+def download_m3u8(url: str, referer: str):
     count = 0
     total_line = 0
-    res = requests.get(args.input, headers={"Referer": args.referer})
+    res = requests.get(url, headers={"Referer": referer})
     for line in res.iter_lines():
         if re.search("https", line.decode("utf-8")):
             total_line = total_line + 1
@@ -31,7 +31,7 @@ def download_m3u8(args):
             count = count + 1
             print(f"Downloading {count}/{total_line}")
             merge.write(f"file 'ts/{count}.ts'")
-            download_ts(line.decode("utf-8"), args.referer, count)
+            download_ts(line.decode("utf-8"), referer, count)
 
     merge.close()
 
@@ -48,4 +48,4 @@ if __name__ == "__main__":
     if not os.path.exists(path_ts):
         os.mkdir(path_ts)
 
-    download_m3u8(args)
+    download_m3u8(args.input, args.referer)
