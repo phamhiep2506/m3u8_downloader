@@ -2,50 +2,38 @@
 
 import requests
 import os
-import subprocess
 import argparse
-from tqdm import tqdm
+import re
+import shutil
+
+
+def download_ts(url: str, index: int):
+    res = requests.get(url)
+
+    ts = open(f"{os.getcwd()}/ts/{index}.ts", "wb")
+    png = b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a\x00\x00\x00\x0d\x49\x48\x44\x52\x00\x00\x00\x01\x00\x00\x00\x01\x01\x03\x00\x00\x00\x25\xdb\x56\xca\x00\x00\x00\x03\x50\x4c\x54\x45\x00\x00\x00\xa7\x7a\x3d\xda\x00\x00\x00\x01\x74\x52\x4e\x53\x00\x40\xe6\xd8\x66\x00\x00\x00\x0a\x49\x44\x41\x54\x08\xd7\x63\x60\x00\x00\x00\x02\x00\x01\xe2\x21\xbc\x33\x00\x00\x00\x00\x49\x45\x4e\x44\xae\x42\x60"
+    ts.write(res.content.replace(png, b""))
+    ts.close()
 
 
 def download_m3u8(args):
-    if args.referer is None:
-        os.system(f"curl -s {args.input} | grep https > url.txt")
-    else:
-        os.system(
-            f"curl -s -H 'Referer: {args.referer}' {args.input} | grep https > url.txt"
-        )
+    count = 0
+    total_line = 0
+    res = requests.get(args.input, headers={"Referer": args.referer})
+    for line in res.iter_lines():
+        if re.search("https", line.decode("utf-8")):
+            total_line = total_line + 1
 
+    merge = open(f"{os.getcwd()}/merge.txt", "w")
 
-def download_ts(url):
-    res = requests.get(url, stream=True)
+    for line in res.iter_lines():
+        if re.search("https", line.decode("utf-8")):
+            count = count + 1
+            print(f"Downloading {count}/{total_line}")
+            merge.write(f"file 'ts/{count}.ts'")
+            download_ts(line.decode("utf-8"), count)
 
-    total_size = int(res.headers.get("content-length", 0))
-    block_size = 1024
-
-    with tqdm(
-        total=total_size, unit="B", unit_scale=True, desc=f"{i}.png"
-    ) as progress_bar:
-        with open(f"{os.getcwd()}/ts/{i}.png", "wb") as file:
-            for data in res.iter_content(block_size):
-                progress_bar.update(len(data))
-                file.write(data)
-    if total_size != 0 and progress_bar.n != total_size:
-        raise RuntimeError("Could not download file")
-
-    xxd_png = "89504e470d0a1a0a0000000d494844520000000100000001010300000025db56ca00000003504c5445000000a77a3dda0000000174524e530040e6d8660000000a4944415408d76360000000020001e221bc330000000049454e44ae4260"
-    xxd_ts = subprocess.run(
-        f"xxd -ps -c 0 {os.getcwd()}/ts/{i}.png",
-        capture_output=True,
-        shell=True,
-        text=True,
-    )
-    xxd_ts = xxd_ts.stdout.replace(xxd_png, "")
-
-    open(f"{os.getcwd()}/ts/{i}.temp", "w").write(xxd_ts)
-
-    os.system(
-        f"cat {os.getcwd()}/ts/{i}.temp | xxd -ps -c 0 -r - {os.getcwd()}/ts/{i}.ts"
-    )
+    merge.close()
 
 
 if __name__ == "__main__":
@@ -54,14 +42,10 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--referer", help="Referer url")
     args = parser.parse_args()
 
-    os.system(f"mkdir -p {os.getcwd()}/ts")
-    os.system(f"rm -rf {os.getcwd()}/ts/*")
+    path_ts = os.path.join(os.getcwd(), "ts")
+    if os.path.exists(path_ts):
+        shutil.rmtree(path_ts)
+    if not os.path.exists(path_ts):
+        os.mkdir(path_ts)
 
     download_m3u8(args)
-
-    merge = open(f"{os.getcwd()}/merge.txt", "w")
-    with open("url.txt", "r") as file:
-        for i, line in enumerate(file):
-            merge.write(f"file 'ts/{i}.ts'")
-            merge.write("\n")
-            download_ts(line.strip())
