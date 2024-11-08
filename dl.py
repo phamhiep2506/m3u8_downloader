@@ -8,6 +8,9 @@ import shutil
 
 
 def download_ts(url: str, referer: str, index: int):
+    if os.path.exists(f"{os.getcwd()}/ts/{index}.ts") is True:
+        return
+
     res = requests.get(url, headers={"Referer": referer})
 
     ts = open(f"{os.getcwd()}/ts/{index}.ts", "wb")
@@ -41,12 +44,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="Input url m3u8")
     parser.add_argument("-r", "--referer", help="Referer url")
+    parser.add_argument("-c", "--continued", action="store_true", help="Continue downloading")
     args = parser.parse_args()
 
     path_ts = os.path.join(os.getcwd(), "ts")
-    if os.path.exists(path_ts):
-        shutil.rmtree(path_ts)
-    if not os.path.exists(path_ts):
-        os.mkdir(path_ts)
+
+    if args.continued is False:
+        if os.path.exists(path_ts):
+            shutil.rmtree(path_ts)
+        if not os.path.exists(path_ts):
+            os.mkdir(path_ts)
 
     download_m3u8(args.input, args.referer)
