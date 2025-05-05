@@ -57,5 +57,5 @@ for i in ${!playlists[@]}; do
         rm -rf ts/${i}_png.ts
     fi
     echo "file ts/${i}.ts" >> merge.txt
-    show_progress $i ${#playlists[@]}
+    show_progress $(($i+1)) ${#playlists[@]}
 done
