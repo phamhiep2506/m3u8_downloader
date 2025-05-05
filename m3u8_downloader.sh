@@ -47,14 +47,15 @@ function show_progress {
 }
 
 mkdir -p ts
-rm -rf ts/*
 rm -rf merge.txt
 touch merge.txt
 
 for i in ${!playlists[@]}; do
-    download_ts "${playlists[$i]}" "ts" "${i}_png.ts"
-    xxd -ps -c 0 ts/${i}_png.ts | sed -E "s/^[A-Za-z0-9].*44ae4260//" | xxd -ps -r > ts/${i}.ts
-    rm -rf ts/${i}_png.ts
+    if [ ! -f ts/${i}.ts ]; then
+        download_ts "${playlists[$i]}" "ts" "${i}_png.ts"
+        xxd -ps -c 0 ts/${i}_png.ts | sed -E "s/^[A-Za-z0-9].*44ae4260//" | xxd -ps -r > ts/${i}.ts
+        rm -rf ts/${i}_png.ts
+    fi
     echo "file ts/${i}.ts" >> merge.txt
     show_progress $i ${#playlists[@]}
 done
