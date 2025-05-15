@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-url_m3u8=$1
-url_referer=$2
+file_m3u8=$1
 
-declare -a playlists=($(https GET $url_m3u8 Referer:$url_referer | grep -E "(http|https)://*"))
+declare -a playlists=($(cat $file_m3u8 | grep -E "(http|https)://*"))
 
 download_ts() {
     url=$1
@@ -28,7 +27,7 @@ function show_progress {
     bar_char_todo="-"
     bar_percentage_scale=2
 
-    # calculate the progress in percentage 
+    # calculate the progress in percentage
     percent=$(bc <<< "scale=$bar_percentage_scale; 100 * $current / $total" )
     # The number of done and todo characters
     done=$(bc <<< "scale=0; $bar_size * $percent / 100" )
