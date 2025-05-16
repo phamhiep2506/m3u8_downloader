@@ -9,12 +9,9 @@ download_ts() {
     output_path=$2
     file_name=$3
 
-    {
-        https --quiet --download $url --output $output_path/$file_name
-    } || {
-        echo "Download file error"
-        exit 1
-    }
+    until https --quiet --download $url --output $output_path/$file_name; do
+        sleep 5
+    done
 }
 
 
