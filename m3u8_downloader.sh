@@ -9,7 +9,7 @@ download_ts() {
     output_path=$2
     file_name=$3
 
-    until https --quiet --download $url --output $output_path/$file_name; do
+    until aria2c $url --out $output_path/$file_name > /dev/null 2>&1; do
         sleep 5
     done
 }
