@@ -17,7 +17,7 @@ for i in ${!playlists[@]}; do
     echo "file ts/${i}.ts" >> merge.txt
 done
 
-aria2c -i urls.txt --console-log-level=warn
+aria2c --input-file=urls.txt --continue true --console-log-level=warn
 
 function show_progress {
     current="$1"
@@ -46,10 +46,17 @@ function show_progress {
     fi
 }
 
+echo "Convert png to ts"
 for i in ${!playlists[@]}; do
     if [ ! -f ts/${i}.ts ]; then
         xxd -ps -c 0 ts/${i}_png.ts | sed -E "s/^[A-Za-z0-9].*44ae4260//" | xxd -ps -r > ts/${i}.ts
-        rm -rf ts/${i}_png.ts
     fi
+
     show_progress $(($i+1)) ${#playlists[@]}
+
+    if [ $(expr ${i} % 10) -eq 0 ]; then
+        wait
+    fi
 done
+
+rm -rf ts/*_png.ts
