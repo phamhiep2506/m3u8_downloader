@@ -4,16 +4,20 @@ file_m3u8=$1
 
 declare -a playlists=($(cat $file_m3u8 | grep -E "(http|https)://*"))
 
-download_ts() {
-    url=$1
-    output_path=$2
-    file_name=$3
+mkdir -p ts
+rm -rf merge.txt
+touch merge.txt
+rm -rf urls.txt
+touch urls.txt
 
-    until aria2c $url --out $output_path/$file_name > /dev/null 2>&1; do
-        sleep 5
-    done
-}
+for i in ${!playlists[@]}; do
+    if [ ! -f ts/${i}.ts ]; then
+        echo -e "${playlists[$i]}\n\tdir=ts\n\tout=${i}_png.ts" >> urls.txt
+    fi
+    echo "file ts/${i}.ts" >> merge.txt
+done
 
+aria2c -i urls.txt --console-log-level=warn
 
 function show_progress {
     current="$1"
@@ -42,16 +46,10 @@ function show_progress {
     fi
 }
 
-mkdir -p ts
-rm -rf merge.txt
-touch merge.txt
-
 for i in ${!playlists[@]}; do
     if [ ! -f ts/${i}.ts ]; then
-        download_ts "${playlists[$i]}" "ts" "${i}_png.ts"
         xxd -ps -c 0 ts/${i}_png.ts | sed -E "s/^[A-Za-z0-9].*44ae4260//" | xxd -ps -r > ts/${i}.ts
         rm -rf ts/${i}_png.ts
     fi
-    echo "file ts/${i}.ts" >> merge.txt
     show_progress $(($i+1)) ${#playlists[@]}
 done
