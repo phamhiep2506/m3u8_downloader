@@ -53,10 +53,6 @@ for i in ${!playlists[@]}; do
     fi
 
     show_progress $(($i+1)) ${#playlists[@]}
-
-    if [ $(expr ${i} % 10) -eq 0 ]; then
-        wait
-    fi
 done
 
 rm -rf ts/*_png.ts
