@@ -103,14 +103,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-o",
-        "--output_ts",
-        type=str,
-        help="Output directory when downloading ts file from m3u8",
-        default="ts",
-    )
-    parser.add_argument(
-        "-O",
-        "--output_mp4",
+        "--output",
         type=str,
         help="Path and file name when converting to mp4",
         required=True,
@@ -119,9 +112,9 @@ if __name__ == "__main__":
 
     URL_M3U8 = args.input
     MAX_WORKERS = args.worker
-    DIR_DOWNLOAD_TS = args.output_ts
-    file_name_mp4 = os.path.basename(args.output_mp4).split("/")[-1]
-    MERGE_FILE = f"{os.path.splitext(file_name_mp4)[0]}_merge.txt"
+    output_file_name = os.path.basename(args.output).split("/")[-1]
+    MERGE_FILE = f"{os.path.splitext(output_file_name)[0]}_merge.txt"
+    DIR_DOWNLOAD_TS = f"{os.path.splitext(output_file_name)[0]}_ts"
 
     if os.path.exists(MERGE_FILE):
         try:
@@ -150,5 +143,4 @@ if __name__ == "__main__":
 
     download_multiple_files(LIST_DOWNLOAD_FILES)
 
-    if args.output_mp4 != "":
-        ffmpeg_concat_ts(MERGE_FILE, args.output_mp4)
+    ffmpeg_concat_ts(MERGE_FILE, args.output)
