@@ -4,8 +4,7 @@ import cloudscraper
 import m3u8
 import re
 import os
-from tqdm import tqdm
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
 URL_M3U8 = "https://stream.cliphot69.one/video2/85e9c82a-05df-4946-a00e-97736b38b94a/master.html"
 
@@ -38,25 +37,29 @@ def merge_ts(file_name):
         f.close()
 
 
-threads = []
+def download_ts(url, file_name):
+    try:
+        scraper = cloudscraper.create_scraper()
+        data = scraper.get(url)
+        png_to_ts(data.content, file_name)
+        merge_ts(file_name)
+    except Exception as error:
+        print(error)
+
+
+files = []
 try:
     scraper = cloudscraper.create_scraper()
     response = scraper.get(URL_M3U8)
 
     playlist = m3u8.loads(f"{response.text}")
 
-    for index, url in enumerate(
-        tqdm(playlist.segments.uri, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}")
-    ):
+    for index, url in enumerate(playlist.segments.uri):
         if os.path.exists(f"ts/{index}.ts"):
             continue
-
-        try:
-            data = scraper.get(f"{url}")
-            png_to_ts(data.content, f"{index}.ts")
-            merge_ts(f"{index}.ts")
-        except Exception as error:
-            print(error)
-
+        files.append((url, f"{index}.ts"))
 except Exception as error:
     print(error)
+
+with ThreadPoolExecutor(max_workers=10) as executor:
+    [executor.submit(download_ts, url, file_name) for url, file_name in files]
