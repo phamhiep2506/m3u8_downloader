@@ -1,5 +1,5 @@
+**/*.ts
 ts/
-merge.txt
-urls.txt
+*.txt
 *.mp4
 *.m3u8
