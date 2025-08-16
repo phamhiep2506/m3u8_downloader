@@ -133,14 +133,18 @@ if __name__ == "__main__":
         scraper = cloudscraper.create_scraper()
         response = scraper.get(URL_M3U8)
 
-        playlist = m3u8.loads(f"{response.text}")
+        if response.status_code == 200:
+            playlist = m3u8.loads(f"{response.text}")
 
-        for index, url in enumerate(playlist.segments.uri):
-            LIST_DOWNLOAD_FILES.append((url, f"{index}.ts"))
-            merge_ts(f"{index}.ts")
+            for index, url in enumerate(playlist.segments.uri):
+                LIST_DOWNLOAD_FILES.append((url, f"{index}.ts"))
+                merge_ts(f"{index}.ts")
+
+            download_multiple_files(LIST_DOWNLOAD_FILES)
+
+            if args.output:
+                ffmpeg_concat_ts(MERGE_FILE, args.output)
+        else:
+            print(f"Request failed with status code: {response.status_code}")
     except Exception as error:
         print(f"Get M3U8: {error}")
-
-    download_multiple_files(LIST_DOWNLOAD_FILES)
-
-    ffmpeg_concat_ts(MERGE_FILE, args.output)
