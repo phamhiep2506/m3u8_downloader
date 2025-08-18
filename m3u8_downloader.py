@@ -5,7 +5,6 @@ import m3u8
 import re
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from requests.utils import parse_header_links
 from tqdm import tqdm
 import argparse
 import shutil
